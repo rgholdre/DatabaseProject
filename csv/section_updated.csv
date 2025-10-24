@@ -1,0 +1,4 @@
+sec_no,courseid,term,year,session,modality,capacity
+1,1,Fall,2025,A,in_person,100
+3,1,Fall,2025,B,online,333
+2,1,Fall,2025,B,online,500
