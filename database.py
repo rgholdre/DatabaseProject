@@ -1,8 +1,11 @@
 # required: psycopg2, Flask, React
 
 import psycopg2 # pip install psycopg2-binary
+import csv
 
 # SQL query text:
+
+# Create tables query text
 create_student_table = """
 CREATE TABLE IF NOT EXISTS students (
     StudentId INT PRIMARY KEY,
@@ -41,8 +44,9 @@ CREATE TABLE IF NOT EXISTS section (
     Session CHAR(1),
     Modality VARCHAR(50),
     Capacity INT,
-    PRIMARY KEY (Sec_no, CourseId)
-)
+    PRIMARY KEY (Sec_no, CourseId),
+    FOREIGN KEY (CourseId) REFERENCES course(CourseId) ON DELETE CASCADE
+);
 """
 
 create_room_table = """
@@ -51,7 +55,7 @@ CREATE TABLE IF NOT EXISTS room (
     Capacity INT, 
     Building VARCHAR(50),
     Room_no INT
-)
+);
 """
 
 create_timeSlot_table = """
@@ -60,7 +64,7 @@ CREATE TABLE IF NOT EXISTS timeSlot (
     Start_time TIME,
     End_time TIME,
     Days VARCHAR(50)
-)
+);
 """
 
 # Relationship tables
@@ -75,7 +79,7 @@ CREATE TABLE IF NOT EXISTS offered_as(
     Capacity INT,
     PRIMARY KEY (Sec_no, CourseId),
     FOREIGN KEY (Sec_no) REFERENCES course ON DELETE CASCADE
-)
+);
 """
 create_enrolled_table = """
 CREATE TABLE IF NOT EXISTS enrolled(
@@ -85,7 +89,7 @@ CREATE TABLE IF NOT EXISTS enrolled(
     PRIMARY KEY (Sec_no, CourseId, StudentId),
     FOREIGN KEY (StudentId) REFERENCES students,
     FOREIGN KEY (Sec_no, CourseId) REFERENCES section   
-)
+);
 """
 create_scheduled_at_table = """
 CREATE TABLE IF NOT EXISTS scheduled_at(
@@ -95,7 +99,7 @@ CREATE TABLE IF NOT EXISTS scheduled_at(
     PRIMARY KEY (Sec_no, CourseId),
     FOREIGN KEY (SlotId) REFERENCES timeSlot,
     FOREIGN KEY (Sec_no, CourseId) REFERENCES section
-)
+);
 """
 create_located_at_table = """
 CREATE TABLE IF NOT EXISTS located_at(
@@ -105,7 +109,7 @@ CREATE TABLE IF NOT EXISTS located_at(
     PRIMARY KEY (Sec_no, CourseId),
     FOREIGN KEY (RoomId) REFERENCES room,
     FOREIGN KEY (Sec_no, CourseId) REFERENCES section
-)
+);
 """
 create_teaches_table = """
 CREATE TABLE IF NOT EXISTS teaches(
@@ -114,17 +118,22 @@ CREATE TABLE IF NOT EXISTS teaches(
     InstructorId INT,
     PRIMARY KEY (Sec_no, CourseId),
     FOREIGN KEY (InstructorId) REFERENCES instructor,
-    FOREIGN KEY (Sec_no, CourseId) REFERENCES section    
-)
+    FOREIGN KEY (Sec_no, CourseId) REFERENCES section ON DELETE CASCADE
+);
 """
 
 # Drop table queries for testing
-drop_student_table = "DROP TABLE IF EXISTS students;"
-drop_instructor_table = "DROP TABLE IF EXISTS instructor;"
-drop_course_table = "DROP TABLE IF EXISTS course;"
-drop_section_table = "DROP TABLE IF EXISTS section;"
-drop_room_table = "DROP TABLE IF EXISTS room;"
-drop_timeSlot_table = "DROP TABLE IF EXISTS timeSlot;"
+drop_student_table = "DROP TABLE IF EXISTS students CASCADE;"
+drop_instructor_table = "DROP TABLE IF EXISTS instructor CASCADE;"
+drop_course_table = "DROP TABLE IF EXISTS course CASCADE;"
+drop_section_table = "DROP TABLE IF EXISTS section CASCADE;"
+drop_room_table = "DROP TABLE IF EXISTS room CASCADE;"
+drop_timeSlot_table = "DROP TABLE IF EXISTS timeSlot CASCADE;"
+drop_offered_as_table = "DROP TABLE IF EXISTS offered_as CASCADE;"
+drop_teaches_table = "DROP TABLE IF EXISTS teaches CASCADE;"
+drop_enrolled_table = "DROP TABLE IF EXISTS enrolled CASCADE;"
+drop_located_at_table = "DROP TABLE IF EXISTS located_at CASCADE;"
+drop_scheduled_at_table = "DROP TABLE IF EXISTS scheduled_at CASCADE;"
 
 def runQuery(query):
 # Database/user/password/port must be set individually between group
@@ -165,9 +174,31 @@ def createTables():
 def createRelations():
     runQuery(create_scheduled_at_table)
     runQuery(create_located_at_table)
-    runQuery(create_section_table)
+    runQuery(create_teaches_table)
     runQuery(create_enrolled_table)
     runQuery(create_offered_as_table)
+
+def insertData():
+    runQuery("INSERT INTO students(StudentId,Name,Email,Major,ClassYear) VALUES(1,'John','john@asu.edu','Computer_Science','Junior');")
+    runQuery("INSERT INTO instructor(InstructorId,Name,Email) VALUES(1,'Dr.Smith','smith@asu.edu');")
+    runQuery("INSERT INTO course(CourseId,Title,Credits,Level,Code) VALUES(1,'Databases',3,'4XX','CSE412');")
+
+    #Insert csv into Section
+    with open('csv/sections.csv','r') as f:
+        read = csv.DictReader(f)
+        for row in read:
+            runQuery(f"INSERT INTO section(Sec_no,CourseId,Term,Year,Session,Modality,Capacity) VALUES({row['Sec_no']},{row['CourseId']},{row['Term']},{row['Year']},{row['Session']},{row['Modality']},{row['Capacity']});")
+
+    #Insert csv into student
+    with open('csv/students.csv','r') as f:
+        read = csv.DictReader(f)
+        for row in read:
+            runQuery(f"INSERT INTO students(StudentId,Name,Email,Major,ClassYear) VALUES({row['StudentId']},{row['Name']},{row['Email']},{row['Major']},{row['ClassYear']});")
+            #Test for inserting into enrolled (relation table based on student information)
+            runQuery(f"INSERT INTO enrolled(Sec_no,CourseId,StudentId) VALUES({row['Sec_no1']},{row['CourseId']},{row['StudentId']});")
+
+    runQuery("INSERT INTO room(RoomId,Capacity,Building,Room_no) VALUES(12,130,'Wexler',101);")
+    runQuery("INSERT INTO timeSlot(SlotId,Start_time,End_time,Days) VALUES(1,'3:00:00','4:00:00',13)")
 
 def closeTables():
     runQuery(drop_course_table)
@@ -176,8 +207,14 @@ def closeTables():
     runQuery(drop_section_table)
     runQuery(drop_student_table)
     runQuery(drop_timeSlot_table)
+    runQuery(drop_offered_as_table)
+    runQuery(drop_teaches_table)
+    runQuery(drop_enrolled_table)
+    runQuery(drop_located_at_table)
+    runQuery(drop_scheduled_at_table)
 
 # create/close tables
 createTables()
 createRelations()
+insertData()
 #closeTables()

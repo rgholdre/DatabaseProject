@@ -1,0 +1,4 @@
+Sec_no,CourseId,Term,Year,Session,Modality,Capacity
+1,1,'Fall',2025,'A','in_person',100
+2,1,'Fall',2025,'B','in_person',500
+3,1,'Fall',2025,'B','online',333
