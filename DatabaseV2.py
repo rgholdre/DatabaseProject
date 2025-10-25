@@ -4,9 +4,9 @@
 import psycopg2
 
 DB_CONFIG = {
-    "host": "/tmp",
+    "host": "localhost",
     "database": "DBProject",
-    "user": "HP",      
+    "user": "",      
     "password": "",    
     "port": "5432"
 }
