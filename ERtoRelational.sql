@@ -1,18 +1,18 @@
-
+-- Er to Realtional DDL Mapping for University Course Management System
 
 CREATE TABLE Course (
-  course_id UUID PRIMARY KEY,
+  course_id int PRIMARY KEY,
   title     VARCHAR(200) NOT NULL,
   code      VARCHAR(20)  NOT NULL,
-  level     INT          NOT NULL,
-  credits   INT          NOT NULL CHECK (credits > 0),
-  UNIQUE (code)
+  level     VARCHAR(3)   NOT NULL,
+  credits   INT          NOT NULL CHECK (credits > 0)
+  --UNIQUE (code)
 );
 
 
 
 CREATE TABLE Instructor (
-  instructor_id UUID PRIMARY KEY,
+  instructor_id int PRIMARY KEY,
   name          VARCHAR(120) NOT NULL,
   email         VARCHAR(254) NOT NULL UNIQUE
 );
@@ -21,7 +21,7 @@ CREATE TABLE Instructor (
 
 
 CREATE TABLE Student (
-  student_id UUID PRIMARY KEY,
+  student_id int PRIMARY KEY,
   name       VARCHAR(120) NOT NULL,
   email      VARCHAR(254) NOT NULL UNIQUE,
   major      VARCHAR(80),
@@ -31,21 +31,20 @@ CREATE TABLE Student (
 
 
 CREATE TABLE Room (
-  room_id  UUID PRIMARY KEY,
-  room_no  INT         NOT NULL,
+  room_id  int PRIMARY KEY,
+  room_no  INT,
   capacity INT         NOT NULL CHECK (capacity >= 0),
-  building VARCHAR(80) NOT NULL,
-  UNIQUE (building, room_no)
+  building VARCHAR(80)
 );
 
 
 
 
 CREATE TABLE TimeSlot (
-  slot_id    UUID PRIMARY KEY,
-  days       VARCHAR(10) NOT NULL,   
-  start_time TIME        NOT NULL,
-  end_time   TIME        NOT NULL,
+  slot_id    int PRIMARY KEY,
+  days       VARCHAR(10),   
+  start_time TIME,
+  end_time   TIME,
   CHECK (end_time > start_time)
 );
 
@@ -53,7 +52,7 @@ CREATE TABLE TimeSlot (
 
 
 CREATE TABLE Section (
-  course_id     UUID   NOT NULL,         -- owner key
+  course_id     int   NOT NULL,         -- owner key
   sec_no        BIGINT NOT NULL,         -- partial key
   session       CHAR(1) NOT NULL,
   capacity      INT     NOT NULL CHECK (capacity >= 0),
@@ -61,9 +60,9 @@ CREATE TABLE Section (
   modality      VARCHAR(20) NOT NULL CHECK (modality IN ('in_person','online','hybrid')),
   term          VARCHAR(10) NOT NULL CHECK (term IN ('Fall','Spring','Summer')),
 
-  instructor_id UUID   NOT NULL,         -- exactly one instructor
-  slot_id       UUID   NOT NULL,         -- exactly one timeslot
-  room_id       UUID       NULL,         -- optional room (online allowed)
+  instructor_id int   NOT NULL,         -- exactly one instructor
+  slot_id       int   NOT NULL,         -- exactly one timeslot
+  room_id       int       NULL,         -- optional room (online allowed)
 
   PRIMARY KEY (course_id, sec_no),
 
@@ -85,11 +84,10 @@ CREATE UNIQUE INDEX uq_section_room_slot
 
 
 -- M:N relationship between Student and Section
-CREATE TABLE Enrollment (
-  student_id UUID   NOT NULL,
-  course_id  UUID   NOT NULL,
+CREATE TABLE Enrolled (
+  student_id int   NOT NULL,
+  course_id  int   NOT NULL,
   sec_no     BIGINT NOT NULL,
-  enrolled_at TIMESTAMP NOT NULL DEFAULT now(),
 
   PRIMARY KEY (student_id, course_id, sec_no),
   FOREIGN KEY (student_id)             REFERENCES Student(student_id)           ON DELETE CASCADE,
