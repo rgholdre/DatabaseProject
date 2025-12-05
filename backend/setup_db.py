@@ -4,9 +4,9 @@ import psycopg2
 print("Creating database...")
 conn = psycopg2.connect(
     host='localhost',
-    database='postgres',
+    database='DBProject',
     user='postgres',
-    password='sohumgodsfury0703',
+    password='Kalefire16',
     port='5432'
 )
 conn.autocommit = True
@@ -29,7 +29,7 @@ conn = psycopg2.connect(
     host='localhost',
     database='DBProject',
     user='postgres',
-    password='sohumgodsfury0703',
+    password='Kalefire16',
     port='5432'
 )
 cur = conn.cursor()

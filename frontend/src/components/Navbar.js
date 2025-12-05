@@ -32,7 +32,9 @@ function Navbar() {
             <div className="navbar-user">
                 {student && (
                     <>
-                        <span className="user-name">👤 {student.name}</span>
+                        <li className={location.pathname === '/student' ? 'active' : ''}>
+                            <Link to="/student">👤 {student.name}</Link>
+                        </li>
                         <button className="logout-btn" onClick={handleLogout}>Logout</button>
                     </>
                 )}

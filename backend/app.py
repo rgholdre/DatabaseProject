@@ -25,7 +25,7 @@ DB_CONFIG = {
     "host": "localhost",
     "database": "DBProject",
     "user": "postgres",
-    "password": "sohumgodsfury0703",
+    "password": "Kalefire16",
     "port": "5432"
 }
 
@@ -129,6 +129,22 @@ def get_instructors():
         cur.close()
         conn.close()
         return jsonify(instructors)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/instructors/<int:instructor_id>', methods=['GET'])
+def get_instructor(instructor_id):
+    """Get a specific instructor by ID."""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM instructor WHERE instructor_id = %s', (instructor_id,))
+        instructor = cur.fetchone()
+        cur.close()
+        conn.close()
+        if instructor:
+            return jsonify(instructor)
+        return jsonify({'error': 'Instructor not found'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

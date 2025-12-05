@@ -44,6 +44,11 @@ export const studentAPI = {
 // Instructor API
 export const instructorAPI = {
     getAll: () => fetchAPI('/instructors'),
+    getById: (id) => fetchAPI(`/instructors/${id}`),
+    create: (data) => fetchAPI('/instructors', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
 };
 
 // Section API

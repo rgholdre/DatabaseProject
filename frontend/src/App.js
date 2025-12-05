@@ -5,6 +5,8 @@ import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import ClassSearch from './pages/ClassSearch';
 import MyEnrollments from './pages/MyEnrollments';
+import StudentInfo from './pages/StudentInfo'
+import Enrollments from './pages/Enrollments'
 import './App.css';
 
 // Protected Route component
@@ -29,6 +31,12 @@ function AppContent() {
         } />
         <Route path="/my-enrollments" element={
           <ProtectedRoute><MyEnrollments /></ProtectedRoute>
+        } />
+        <Route path="/student" element={
+          <ProtectedRoute><StudentInfo /></ProtectedRoute>
+        } />
+         <Route path="/enrollments" element={
+          <ProtectedRoute><Enrollments /></ProtectedRoute>
         } />
       </Routes>
     </div>

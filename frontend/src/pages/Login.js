@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudent } from '../context/StudentContext';
-import { studentAPI } from '../api';
+import { instructorAPI, studentAPI } from '../api';
 import './Login.css';
 
 function Login() {
     const [studentId, setStudentId] = useState('');
+    const [instructorId, setInstructorId] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useStudent();
@@ -26,6 +27,26 @@ function Login() {
             }
         } catch (err) {
             setError('Student not found. Please check your ID.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleInstructLogin = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            const instructor = await instructorAPI.getById(instructorId);
+            if (instructor) {
+                login(instructor);
+                navigate('/enrollment');
+            } else {
+                setError('Instructor not found. Please check your ID.');
+            }
+        } catch (err) {
+            setError('Instructor not found. Please check your ID.');
         } finally {
             setLoading(false);
         }
@@ -62,9 +83,31 @@ function Login() {
                 </form>
 
                 <div className="demo-info">
-                    <p><strong>Demo Student IDs:</strong></p>
+                    <p><strong>Demo Student or Instructor IDs:</strong></p>
                     <p>Try: 1, 2, 3, 4, or 5</p>
                 </div>
+
+                <form onSubmit={handleInstructLogin} className="login-form">
+                    <h2>Instructor Login</h2>
+                    
+                    <div className="form-group">
+                        <label htmlFor="instructorId">Instructor ID</label>
+                        <input
+                            type="text"
+                            id="instructorId"
+                            value={instructorId}
+                            onChange={(e) => setInstructorId(e.target.value)}
+                            placeholder="Enter your Instructor ID"
+                            required
+                        />
+                    </div>
+
+                    {error && <div className="error-message">{error}</div>}
+
+                    <button type="submit" disabled={loading}>
+                        {loading ? 'Logging in...' : 'Login'}
+                    </button>
+                </form>
             </div>
         </div>
     );
