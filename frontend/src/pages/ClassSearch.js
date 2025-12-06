@@ -70,7 +70,7 @@ function ClassSearch() {
     const handleEnroll = async (section) => {
         try {
             await enrollmentAPI.create({
-                student_id: student.student_id,
+                student_id: student.studentid || student.student_id,
                 course_id: section.course_id,
                 sec_no: section.sec_no
             });

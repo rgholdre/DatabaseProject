@@ -5,6 +5,7 @@ from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import date, time, datetime
+from config import DB_CONFIG
 
 # Custom JSON provider to handle datetime objects
 class CustomJSONProvider(DefaultJSONProvider):
@@ -20,15 +21,6 @@ app.json_provider_class = CustomJSONProvider
 app.json = CustomJSONProvider(app)
 CORS(app)  # Enable CORS for React frontend
 
-# Database configuration
-DB_CONFIG = {
-    "host": "localhost",
-    "database": "DBProject",
-    "user": "postgres",
-    "password": "Kalefire16",
-    "port": "5432"
-}
-
 def get_db_connection():
     """Create and return a database connection."""
     conn = psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
@@ -41,7 +33,7 @@ def get_courses():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('SELECT * FROM course ORDER BY course_id')
+        cur.execute('SELECT * FROM course ORDER BY courseid')
         courses = cur.fetchall()
         cur.close()
         conn.close()
@@ -49,13 +41,13 @@ def get_courses():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/courses/<int:course_id>', methods=['GET'])
-def get_course(course_id):
+@app.route('/api/courses/<int:courseid>', methods=['GET'])
+def get_course(courseid):
     """Get a specific course by ID."""
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('SELECT * FROM course WHERE course_id = %s', (course_id,))
+        cur.execute('SELECT * FROM course WHERE courseid = %s', (courseid,))
         course = cur.fetchone()
         cur.close()
         conn.close()
@@ -72,7 +64,7 @@ def get_students():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('SELECT * FROM student ORDER BY student_id')
+        cur.execute('SELECT * FROM students ORDER BY studentid')
         students = cur.fetchall()
         cur.close()
         conn.close()
@@ -80,13 +72,13 @@ def get_students():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/students/<int:student_id>', methods=['GET'])
-def get_student(student_id):
+@app.route('/api/students/<int:studentid>', methods=['GET'])
+def get_student(studentid):
     """Get a specific student by ID."""
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('SELECT * FROM student WHERE student_id = %s', (student_id,))
+        cur.execute('SELECT * FROM students WHERE studentid = %s', (studentid,))
         student = cur.fetchone()
         cur.close()
         conn.close()
@@ -104,10 +96,10 @@ def create_student():
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute(
-            '''INSERT INTO student (student_id, name, email, major, class_year) 
+            '''INSERT INTO students (studentid, name, email, major, classyear) 
                VALUES (%s, %s, %s, %s, %s) RETURNING *''',
-            (data['student_id'], data['name'], data['email'], 
-             data.get('major'), data.get('class_year'))
+            (data['studentid'], data['name'], data['email'], 
+             data.get('major'), data.get('classyear'))
         )
         student = cur.fetchone()
         conn.commit()
@@ -124,7 +116,7 @@ def get_instructors():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('SELECT * FROM instructor ORDER BY instructor_id')
+        cur.execute('SELECT * FROM instructor ORDER BY instructorid')
         instructors = cur.fetchall()
         cur.close()
         conn.close()
@@ -132,13 +124,13 @@ def get_instructors():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
-@app.route('/api/instructors/<int:instructor_id>', methods=['GET'])
-def get_instructor(instructor_id):
+@app.route('/api/instructors/<int:instructorid>', methods=['GET'])
+def get_instructor(instructorid):
     """Get a specific instructor by ID."""
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('SELECT * FROM instructor WHERE instructor_id = %s', (instructor_id,))
+        cur.execute('SELECT * FROM instructor WHERE instructorid = %s', (instructorid,))
         instructor = cur.fetchone()
         cur.close()
         conn.close()
@@ -156,14 +148,18 @@ def get_sections():
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute('''
-            SELECT s.*, c.title as course_title, c.code as course_code,
+            SELECT s.sec_no, s.courseid as course_id, s.term, s.year, s.session, s.modality, s.capacity,
+                   c.title as course_title, c.code as course_code,
                    i.name as instructor_name, t.days, t.start_time, t.end_time,
                    r.room_no, r.building
             FROM section s
-            JOIN course c ON s.course_id = c.course_id
-            JOIN instructor i ON s.instructor_id = i.instructor_id
-            JOIN timeslot t ON s.slot_id = t.slot_id
-            LEFT JOIN room r ON s.room_id = r.room_id
+            JOIN course c ON s.courseid = c.courseid
+            JOIN teaches te ON s.sec_no = te.sec_no AND s.courseid = te.courseid
+            JOIN instructor i ON te.instructorid = i.instructorid
+            JOIN scheduled_at sa ON s.sec_no = sa.sec_no AND s.courseid = sa.courseid
+            JOIN timeslot t ON sa.slotid = t.slotid
+            LEFT JOIN located_at la ON s.sec_no = la.sec_no AND s.courseid = la.courseid
+            LEFT JOIN room r ON la.roomid = r.roomid
             ORDER BY c.code, s.sec_no
         ''')
         sections = cur.fetchall()
@@ -173,8 +169,8 @@ def get_sections():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/sections/<int:course_id>/<int:sec_no>', methods=['GET'])
-def get_section(course_id, sec_no):
+@app.route('/api/sections/<int:courseid>/<int:sec_no>', methods=['GET'])
+def get_section(courseid, sec_no):
     """Get a specific section."""
     try:
         conn = get_db_connection()
@@ -183,17 +179,20 @@ def get_section(course_id, sec_no):
             SELECT s.*, c.title as course_title, c.code as course_code,
                    i.name as instructor_name, t.days, t.start_time, t.end_time,
                    r.room_no, r.building,
-                   s.capacity - COALESCE(COUNT(e.student_id), 0) as seats_available
+                   s.capacity - COALESCE(COUNT(e.studentid), 0) as seats_available
             FROM section s
-            JOIN course c ON s.course_id = c.course_id
-            JOIN instructor i ON s.instructor_id = i.instructor_id
-            JOIN timeslot t ON s.slot_id = t.slot_id
-            LEFT JOIN room r ON s.room_id = r.room_id
-            LEFT JOIN enrolled e ON s.course_id = e.course_id AND s.sec_no = e.sec_no
-            WHERE s.course_id = %s AND s.sec_no = %s
-            GROUP BY s.course_id, s.sec_no, c.title, c.code, i.name,
+            JOIN course c ON s.courseid = c.courseid
+            JOIN teaches te ON s.sec_no = te.sec_no AND s.courseid = te.courseid
+            JOIN instructor i ON te.instructorid = i.instructorid
+            JOIN scheduled_at sa ON s.sec_no = sa.sec_no AND s.courseid = sa.courseid
+            JOIN timeslot t ON sa.slotid = t.slotid
+            LEFT JOIN located_at la ON s.sec_no = la.sec_no AND s.courseid = la.courseid
+            LEFT JOIN room r ON la.roomid = r.roomid
+            LEFT JOIN enrolled e ON s.courseid = e.courseid AND s.sec_no = e.sec_no
+            WHERE s.courseid = %s AND s.sec_no = %s
+            GROUP BY s.courseid, s.sec_no, c.title, c.code, i.name,
                      t.days, t.start_time, t.end_time, r.room_no, r.building
-        ''', (course_id, sec_no))
+        ''', (courseid, sec_no))
         section = cur.fetchone()
         cur.close()
         conn.close()
@@ -214,9 +213,9 @@ def get_enrollments():
             SELECT e.*, st.name as student_name, c.title as course_title,
                    c.code as course_code, se.term, se.year
             FROM enrolled e
-            JOIN student st ON e.student_id = st.student_id
-            JOIN section se ON e.course_id = se.course_id AND e.sec_no = se.sec_no
-            JOIN course c ON se.course_id = c.course_id
+            JOIN students st ON e.studentid = st.studentid
+            JOIN section se ON e.courseid = se.courseid AND e.sec_no = se.sec_no
+            JOIN course c ON se.courseid = c.courseid
             ORDER BY st.name, c.code
         ''')
         enrollments = cur.fetchall()
@@ -226,25 +225,29 @@ def get_enrollments():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/enrollments/student/<int:student_id>', methods=['GET'])
-def get_student_enrollments(student_id):
+@app.route('/api/enrollments/student/<int:studentid>', methods=['GET'])
+def get_student_enrollments(studentid):
     """Get all enrollments for a specific student."""
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute('''
-            SELECT e.*, c.title as course_title, c.code as course_code,
+            SELECT e.studentid as student_id, e.courseid as course_id, e.sec_no,
+                   c.title as course_title, c.code as course_code,
                    se.term, se.year, se.modality, i.name as instructor_name,
                    t.days, t.start_time, t.end_time, r.room_no, r.building
             FROM enrolled e
-            JOIN section se ON e.course_id = se.course_id AND e.sec_no = se.sec_no
-            JOIN course c ON se.course_id = c.course_id
-            JOIN instructor i ON se.instructor_id = i.instructor_id
-            JOIN timeslot t ON se.slot_id = t.slot_id
-            LEFT JOIN room r ON se.room_id = r.room_id
-            WHERE e.student_id = %s
+            JOIN section se ON e.courseid = se.courseid AND e.sec_no = se.sec_no
+            JOIN course c ON se.courseid = c.courseid
+            JOIN teaches te ON se.sec_no = te.sec_no AND se.courseid = te.courseid
+            JOIN instructor i ON te.instructorid = i.instructorid
+            JOIN scheduled_at sa ON se.sec_no = sa.sec_no AND se.courseid = sa.courseid
+            JOIN timeslot t ON sa.slotid = t.slotid
+            LEFT JOIN located_at la ON se.sec_no = la.sec_no AND se.courseid = la.courseid
+            LEFT JOIN room r ON la.roomid = r.roomid
+            WHERE e.studentid = %s
             ORDER BY c.code
-        ''', (student_id,))
+        ''', (studentid,))
         enrollments = cur.fetchall()
         cur.close()
         conn.close()
@@ -260,23 +263,28 @@ def create_enrollment():
         conn = get_db_connection()
         cur = conn.cursor()
 
+        # Support both naming conventions from frontend
+        studentid = data.get('studentid') or data.get('student_id')
+        courseid = data.get('courseid') or data.get('course_id')
+        sec_no = data.get('sec_no')
+
         # Check if section has available seats
         cur.execute('''
-            SELECT s.capacity - COALESCE(COUNT(e.student_id), 0) as seats
+            SELECT s.capacity - COALESCE(COUNT(e.studentid), 0) as seats
             FROM section s
-            LEFT JOIN enrolled e ON s.course_id = e.course_id AND s.sec_no = e.sec_no
-            WHERE s.course_id = %s AND s.sec_no = %s
+            LEFT JOIN enrolled e ON s.courseid = e.courseid AND s.sec_no = e.sec_no
+            WHERE s.courseid = %s AND s.sec_no = %s
             GROUP BY s.capacity
-        ''', (data['course_id'], data['sec_no']))
+        ''', (courseid, sec_no))
         result = cur.fetchone()
 
         if not result or result['seats'] <= 0:
             return jsonify({'error': 'No seats available'}), 400
 
         cur.execute(
-            '''INSERT INTO enrolled (student_id, course_id, sec_no)
+            '''INSERT INTO enrolled (studentid, courseid, sec_no)
                VALUES (%s, %s, %s) RETURNING *''',
-            (data['student_id'], data['course_id'], data['sec_no'])
+            (studentid, courseid, sec_no)
         )
         enrollment = cur.fetchone()
         conn.commit()
@@ -286,17 +294,17 @@ def create_enrollment():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/enrollments/<int:student_id>/<int:course_id>/<int:sec_no>', methods=['DELETE'])
-def delete_enrollment(student_id, course_id, sec_no):
+@app.route('/api/enrollments/<int:studentid>/<int:courseid>/<int:sec_no>', methods=['DELETE'])
+def delete_enrollment(studentid, courseid, sec_no):
     """Remove a student from a section."""
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute(
             '''DELETE FROM enrolled
-               WHERE student_id = %s AND course_id = %s AND sec_no = %s
+               WHERE studentid = %s AND courseid = %s AND sec_no = %s
                RETURNING *''',
-            (student_id, course_id, sec_no)
+            (studentid, courseid, sec_no)
         )
         deleted = cur.fetchone()
         conn.commit()
@@ -322,9 +330,9 @@ def search_courses():
 
         sql = '''
             SELECT DISTINCT c.*,
-                   (SELECT COUNT(*) FROM section s WHERE s.course_id = c.course_id) as section_count
+                   (SELECT COUNT(*) FROM section s WHERE s.courseid = c.courseid) as section_count
             FROM course c
-            LEFT JOIN section s ON c.course_id = s.course_id
+            LEFT JOIN section s ON c.courseid = s.courseid
             WHERE (c.title ILIKE %s OR c.code ILIKE %s)
         '''
         params = [f'%{query}%', f'%{query}%']

@@ -18,7 +18,7 @@ function MyEnrollments() {
     const loadEnrollments = async () => {
         try {
             setLoading(true);
-            const data = await enrollmentAPI.getByStudent(student.student_id);
+            const data = await enrollmentAPI.getByStudent(student.studentid || student.student_id);
             setEnrollments(data);
         } catch (err) {
             setMessage({ text: 'Failed to load enrollments', type: 'error' });
@@ -30,7 +30,7 @@ function MyEnrollments() {
     const handleDrop = async (courseId, secNo, courseName) => {
         if (window.confirm(`Are you sure you want to drop ${courseName}?`)) {
             try {
-                await enrollmentAPI.delete(student.student_id, courseId, secNo);
+                await enrollmentAPI.delete(student.studentid || student.student_id, courseId, secNo);
                 setMessage({ text: `Successfully dropped ${courseName}`, type: 'success' });
                 loadEnrollments();
                 setTimeout(() => setMessage({ text: '', type: '' }), 3000);

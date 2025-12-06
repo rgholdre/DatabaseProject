@@ -18,7 +18,7 @@ function MyEnrollments() {
     const loadEnrollments = async () => {
         try {
             setLoading(true);
-            const data = await enrollmentAPI.getByStudent(student.student_id);
+            const data = await enrollmentAPI.getByStudent(student.studentid || student.student_id);
             setEnrollments(data);
         } catch (err) {
             setMessage({ text: 'Failed to load enrollments', type: 'error' });

@@ -117,3 +117,32 @@
     font-size: 0.9rem;
 }
 
+.signup-link {
+    background-color: #f9f9f9;
+    padding: 1rem 2rem;
+    text-align: center;
+    border-top: 1px solid #eee;
+}
+
+.signup-link p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.link-button {
+    background: none;
+    border: none;
+    color: #8c1d40;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    font-size: inherit;
+}
+
+.link-button:hover {
+    color: #ffc627;
+    text-decoration: underline;
+}
+

@@ -1,7 +1,7 @@
 -- INSERT STATEMENTS TO POPULATE THE TABLES WITH AT LEAST 10 TUPLES PER TABLE 
 
 -- Instructors
-INSERT INTO Instructor (instructor_id, name, email) VALUES
+INSERT INTO instructor (instructorid, name, email) VALUES
 (1, 'Soumya Indela', 'soumyai@university.edu'),
 (2, 'Ryan Meuth', 'ryan.meuth@university.edu'),
 (3, 'Erik Trickel', 'erik.trickel@university.edu'),
@@ -18,7 +18,7 @@ INSERT INTO Instructor (instructor_id, name, email) VALUES
 
 
 -- Courses
-INSERT INTO Course (course_id, title, credits, level, code) VALUES
+INSERT INTO course (courseid, title, credits, level, code) VALUES
 (1, 'Principles of Programming with C++', 3, '1XX', 'CSE100'),
 (2, 'Principles of Programming', 3, '1XX', 'CSE110'),
 (3, 'Object-Oriented Programming and Data Structures', 3, '2XX', 'CSE205'),
@@ -37,7 +37,7 @@ INSERT INTO Course (course_id, title, credits, level, code) VALUES
 
 
 -- Students
-INSERT INTO Student (student_id, name, email, major, class_year) VALUES
+INSERT INTO students (studentid, name, email, major, classyear) VALUES
 (1,'Alice Kim','alice.kim@university.edu','Computer Science','Sophomore'),
 (2,'John Rivera','john.rivera@university.edu','Software Engineering','Junior'),
 (3,'Maria Lopez','maria.lopez@university.edu','Computer Science','Senior'),
@@ -62,7 +62,7 @@ INSERT INTO Student (student_id, name, email, major, class_year) VALUES
 
 
 -- Rooms
-INSERT INTO room (room_id, capacity, building, room_no) VALUES
+INSERT INTO room (roomid, capacity, building, room_no) VALUES
 (1,125,'PSH',152),
 (2,400,NULL,NULL),
 (3,75,'LIBC',5),
@@ -81,7 +81,7 @@ INSERT INTO room (room_id, capacity, building, room_no) VALUES
 
 
 -- TimeSlots
-INSERT INTO TimeSlot (slot_id, start_time, end_time, days) VALUES
+INSERT INTO timeslot (slotid, start_time, end_time, days) VALUES
 (1,'15:00:00','16:15:00','T TH'),
 (2,'12:00:00','13:15:00','M'),
 (3,'09:00:00','10:15:00','M W'),
@@ -98,27 +98,73 @@ INSERT INTO TimeSlot (slot_id, start_time, end_time, days) VALUES
 
 
 -- Sections
-INSERT INTO section (course_id, sec_no, session, capacity, year, modality, term, instructor_id, slot_id, room_id) VALUES
-  (1, 12440, 'C', 125, 2026, 'in_person', 'Spring', 1, 1, 1),
-  (2, 13452, 'A', 400, 2026, 'online',    'Spring', 2, 4, NULL),
-  (3, 10944, 'C', 900, 2026, 'hybrid',    'Spring', 2, 4, NULL),
-  (4, 28757, 'C',  75, 2026, 'hybrid',    'Spring', 3, 2, 3),
-  (5, 12431, 'C', 150, 2026, 'in_person', 'Spring', 4, 1, 4),
-  (6, 11251, 'C', 180, 2026, 'in_person', 'Spring', 5, 3, 5),
-  (7, 26859, 'C', 150, 2026, 'online',    'Spring', 6, 4, NULL),
-  (8, 19439, 'C', 150, 2026, 'in_person', 'Spring', 7, 5, 7),
-  (9, 39019, 'B', 150, 2026, 'hybrid',    'Spring', 8, 6, 8),
-  (10,34956, 'B', 185, 2026, 'in_person', 'Spring', 8, 7, 9),
-  (11,64018, 'C', 166, 2025, 'in_person', 'Fall',   9, 8, 10),
-  (12,79248, 'C',  80, 2025, 'hybrid',    'Fall',  10, 9, 11),
-  (13,76906, 'C', 160, 2025, 'in_person', 'Fall',  11,10, 12),
-  (14,75974, 'C', 150, 2025, 'in_person', 'Fall',  12,11, 13);
+INSERT INTO section (courseid, sec_no, session, capacity, year, modality, term) VALUES
+  (1, 12440, 'C', 125, 2026, 'in_person', 'Spring'),
+  (2, 13452, 'A', 400, 2026, 'online',    'Spring'),
+  (3, 10944, 'C', 900, 2026, 'hybrid',    'Spring'),
+  (4, 28757, 'C',  75, 2026, 'hybrid',    'Spring'),
+  (5, 12431, 'C', 150, 2026, 'in_person', 'Spring'),
+  (6, 11251, 'C', 180, 2026, 'in_person', 'Spring'),
+  (7, 26859, 'C', 150, 2026, 'online',    'Spring'),
+  (8, 19439, 'C', 150, 2026, 'in_person', 'Spring'),
+  (9, 39019, 'B', 150, 2026, 'hybrid',    'Spring'),
+  (10,34956, 'B', 185, 2026, 'in_person', 'Spring'),
+  (11,64018, 'C', 166, 2025, 'in_person', 'Fall'),
+  (12,79248, 'C',  80, 2025, 'hybrid',    'Fall'),
+  (13,76906, 'C', 160, 2025, 'in_person', 'Fall'),
+  (14,75974, 'C', 150, 2025, 'in_person', 'Fall');
 
+-- Teaches (link instructors to sections)
+INSERT INTO teaches (sec_no, courseid, instructorid) VALUES
+  (12440, 1, 1),
+  (13452, 2, 2),
+  (10944, 3, 2),
+  (28757, 4, 3),
+  (12431, 5, 4),
+  (11251, 6, 5),
+  (26859, 7, 6),
+  (19439, 8, 7),
+  (39019, 9, 8),
+  (34956, 10, 8),
+  (64018, 11, 9),
+  (79248, 12, 10),
+  (76906, 13, 11),
+  (75974, 14, 12);
 
+-- Scheduled_at (link sections to timeslots)
+INSERT INTO scheduled_at (sec_no, courseid, slotid) VALUES
+  (12440, 1, 1),
+  (13452, 2, 4),
+  (10944, 3, 4),
+  (28757, 4, 2),
+  (12431, 5, 1),
+  (11251, 6, 3),
+  (26859, 7, 4),
+  (19439, 8, 5),
+  (39019, 9, 6),
+  (34956, 10, 7),
+  (64018, 11, 8),
+  (79248, 12, 9),
+  (76906, 13, 10),
+  (75974, 14, 11);
 
+-- Located_at (link sections to rooms)
+INSERT INTO located_at (sec_no, courseid, roomid) VALUES
+  (12440, 1, 1),
+  (10944, 3, 3),
+  (28757, 4, 3),
+  (12431, 5, 4),
+  (11251, 6, 5),
+  (19439, 8, 7),
+  (39019, 9, 8),
+  (34956, 10, 9),
+  (64018, 11, 10),
+  (79248, 12, 11),
+  (76906, 13, 12),
+  (75974, 14, 13);
 
 -- Enrolled (randomly assigns 1–3 courses per student)
-INSERT INTO Enrolled (sec_no, course_id, student_id) VALUES
+INSERT INTO enrolled (sec_no, courseid, studentid) VALUES
 (12440,1,1),(13452,2,1),(11251,6,1),
 (10944,3,2),(12431,5,2),
 (28757,4,3),(39019,9,3),(34956,10,3),

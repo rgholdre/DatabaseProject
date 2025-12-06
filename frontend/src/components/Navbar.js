@@ -28,13 +28,14 @@ function Navbar() {
                 <li className={location.pathname === '/my-enrollments' ? 'active' : ''}>
                     <Link to="/my-enrollments">My Enrollments</Link>
                 </li>
+                <li className={location.pathname === '/profile' ? 'active' : ''}>
+                    <Link to="/profile">Profile</Link>
+                </li>
             </ul>
             <div className="navbar-user">
                 {student && (
                     <>
-                        <li className={location.pathname === '/student' ? 'active' : ''}>
-                            <Link to="/student">👤 {student.name}</Link>
-                        </li>
+                        <span className="student-name">👤 {student.name}</span>
                         <button className="logout-btn" onClick={handleLogout}>Logout</button>
                     </>
                 )}
@@ -44,4 +45,5 @@ function Navbar() {
 }
 
 export default Navbar;
+
 
