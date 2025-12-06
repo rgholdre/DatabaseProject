@@ -261,4 +261,3 @@ psql -U postgres -d DBProject -f ERtoRelational.sql
 
 For issues or questions, please open an issue on the GitHub repository or contact the project maintainers.
 
-

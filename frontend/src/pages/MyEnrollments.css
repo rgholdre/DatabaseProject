@@ -1,0 +1,168 @@
+.my-enrollments-page {
+    min-height: 100vh;
+    background-color: #f5f5f5;
+}
+
+.enrollments-header {
+    background-color: #8c1d40;
+    padding: 2rem;
+}
+
+.enrollments-header .header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.enrollments-header h1 {
+    color: white;
+    margin: 0;
+    font-size: 2rem;
+}
+
+.student-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    color: white;
+}
+
+.student-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.student-id {
+    color: #ffc627;
+    font-size: 0.9rem;
+}
+
+.message {
+    max-width: 1200px;
+    margin: 1rem auto;
+    padding: 1rem;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.message.success { background-color: #d4edda; color: #155724; }
+.message.error { background-color: #f8d7da; color: #721c24; }
+
+.enrollments-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    display: flex;
+    gap: 3rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.summary-label {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.summary-value {
+    color: #8c1d40;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.enrollments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.enrollment-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-left: 4px solid #8c1d40;
+}
+
+.course-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.course-code {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #8c1d40;
+}
+
+.section-badge {
+    background-color: #ffc627;
+    color: #191919;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.course-title {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.25rem;
+    color: #333;
+}
+
+.course-details {
+    display: flex;
+    gap: 2rem;
+}
+
+.detail {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.drop-btn {
+    background-color: transparent;
+    color: #dc3545;
+    border: 2px solid #dc3545;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.drop-btn:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.loading, .no-enrollments {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 8px;
+}
+
+.no-enrollments h3 { color: #8c1d40; margin-bottom: 0.5rem; }
+.no-enrollments p { color: #666; }
+

@@ -1,7 +1,7 @@
 -- Er to Realtional DDL Mapping for University Course Management System
 
-CREATE TABLE Course (
-  course_id int PRIMARY KEY,
+CREATE TABLE course (
+  courseid int PRIMARY KEY,
   title     VARCHAR(200) NOT NULL,
   code      VARCHAR(20)  NOT NULL,
   level     VARCHAR(3)   NOT NULL,
@@ -11,8 +11,8 @@ CREATE TABLE Course (
 
 
 
-CREATE TABLE Instructor (
-  instructor_id int PRIMARY KEY,
+CREATE TABLE instructor (
+  instructorid int PRIMARY KEY,
   name          VARCHAR(120) NOT NULL,
   email         VARCHAR(254) NOT NULL UNIQUE
 );
@@ -20,18 +20,18 @@ CREATE TABLE Instructor (
 
 
 
-CREATE TABLE Student (
-  student_id int PRIMARY KEY,
+CREATE TABLE students (
+  studentid int PRIMARY KEY,
   name       VARCHAR(120) NOT NULL,
   email      VARCHAR(254) NOT NULL UNIQUE,
   major      VARCHAR(80),
-  class_year VARCHAR(20)
+  classyear VARCHAR(20)
 );
 
 
 
-CREATE TABLE Room (
-  room_id  int PRIMARY KEY,
+CREATE TABLE room (
+  roomid  int PRIMARY KEY,
   room_no  INT,
   capacity INT         NOT NULL CHECK (capacity >= 0),
   building VARCHAR(80)
@@ -40,8 +40,8 @@ CREATE TABLE Room (
 
 
 
-CREATE TABLE TimeSlot (
-  slot_id    int PRIMARY KEY,
+CREATE TABLE timeslot (
+  slotid    int PRIMARY KEY,
   days       VARCHAR(10),   
   start_time TIME,
   end_time   TIME,
@@ -51,8 +51,8 @@ CREATE TABLE TimeSlot (
 
 
 
-CREATE TABLE Section (
-  course_id     int   NOT NULL,         -- owner key
+CREATE TABLE section (
+  courseid     int   NOT NULL,         -- owner key
   sec_no        BIGINT NOT NULL,         -- partial key
   session       CHAR(1) NOT NULL,
   capacity      INT     NOT NULL CHECK (capacity >= 0),
@@ -60,66 +60,62 @@ CREATE TABLE Section (
   modality      VARCHAR(20) NOT NULL CHECK (modality IN ('in_person','online','hybrid')),
   term          VARCHAR(10) NOT NULL CHECK (term IN ('Fall','Spring','Summer')),
 
-  instructor_id int   NOT NULL,         -- exactly one instructor
-  slot_id       int   NOT NULL,         -- exactly one timeslot
-  room_id       int       NULL,         -- optional room (online allowed)
+  PRIMARY KEY (courseid, sec_no),
 
-  PRIMARY KEY (course_id, sec_no),
-
-
-  FOREIGN KEY (course_id)     REFERENCES Course(course_id)         ON DELETE CASCADE,
-  FOREIGN KEY (instructor_id) REFERENCES Instructor(instructor_id) ON DELETE RESTRICT,
-  FOREIGN KEY (slot_id)       REFERENCES TimeSlot(slot_id)         ON DELETE RESTRICT,
-  FOREIGN KEY (room_id)       REFERENCES Room(room_id)             ON DELETE SET NULL
+  FOREIGN KEY (courseid)     REFERENCES course(courseid)         ON DELETE CASCADE
 );
-
-
-
--- Avoid double-booking a room in a slot: a partial unique index to ignore NULL room_id
-CREATE UNIQUE INDEX uq_section_room_slot
-  ON Section(room_id, slot_id)
-  WHERE room_id IS NOT NULL;
 
 
 
 
 -- M:N relationship between Student and Section
-CREATE TABLE Enrolled (
-  student_id int   NOT NULL,
-  course_id  int   NOT NULL,
+CREATE TABLE enrolled (
+  studentid int   NOT NULL,
+  courseid  int   NOT NULL,
   sec_no     BIGINT NOT NULL,
 
-  PRIMARY KEY (student_id, course_id, sec_no),
-  FOREIGN KEY (student_id)             REFERENCES Student(student_id)           ON DELETE CASCADE,
-  FOREIGN KEY (course_id, sec_no)      REFERENCES Section(course_id, sec_no)    ON DELETE CASCADE
+  PRIMARY KEY (studentid, courseid, sec_no),
+  FOREIGN KEY (studentid)             REFERENCES students(studentid)           ON DELETE CASCADE,
+  FOREIGN KEY (courseid, sec_no)      REFERENCES section(courseid, sec_no)    ON DELETE CASCADE
 );
 
 
 
 
--- Offered_as (Course — Section)
-CREATE OR REPLACE VIEW Offered_as AS
-SELECT course_id, sec_no
-FROM Section;
+-- Teaches (Instructor — Section) - Junction Table
+CREATE TABLE teaches (
+  sec_no      BIGINT NOT NULL,
+  courseid    int   NOT NULL,
+  instructorid int   NOT NULL,
+
+  PRIMARY KEY (sec_no, courseid, instructorid),
+  FOREIGN KEY (courseid, sec_no)      REFERENCES section(courseid, sec_no)    ON DELETE CASCADE,
+  FOREIGN KEY (instructorid)          REFERENCES instructor(instructorid)     ON DELETE RESTRICT
+);
 
 
--- Teaches (Instructor — Section)
-CREATE OR REPLACE VIEW Teaches AS
-SELECT instructor_id, course_id, sec_no
-FROM Section;
+-- Scheduled_at (TimeSlot — Section) - Junction Table
+CREATE TABLE scheduled_at (
+  sec_no   BIGINT NOT NULL,
+  courseid int   NOT NULL,
+  slotid   int   NOT NULL,
+
+  PRIMARY KEY (sec_no, courseid, slotid),
+  FOREIGN KEY (courseid, sec_no)   REFERENCES section(courseid, sec_no)   ON DELETE CASCADE,
+  FOREIGN KEY (slotid)             REFERENCES timeslot(slotid)            ON DELETE RESTRICT
+);
 
 
--- Scheduled_at (TimeSlot — Section)
-CREATE OR REPLACE VIEW Scheduled_at AS
-SELECT slot_id, course_id, sec_no
-FROM Section;
+-- Located_at (Room — Section) - Junction Table
+CREATE TABLE located_at (
+  sec_no   BIGINT NOT NULL,
+  courseid int   NOT NULL,
+  roomid   int       NULL,
 
-
--- Located_at (Room — Section)
-CREATE OR REPLACE VIEW Located_at AS
-SELECT room_id, course_id, sec_no
-FROM Section
-WHERE room_id IS NOT NULL;
+  PRIMARY KEY (sec_no, courseid, roomid),
+  FOREIGN KEY (courseid, sec_no)   REFERENCES section(courseid, sec_no)   ON DELETE CASCADE,
+  FOREIGN KEY (roomid)             REFERENCES room(roomid)                ON DELETE SET NULL
+);
 
 
 
