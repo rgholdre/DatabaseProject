@@ -61,7 +61,8 @@ function ClassSearch() {
             const kw = filters.keyword.toLowerCase();
             results = results.filter(s => 
                 s.course_title.toLowerCase().includes(kw) || 
-                s.course_code.toLowerCase().includes(kw)
+                s.course_code.toLowerCase().includes(kw) ||
+                s.instructor_name.toLowerCase().includes(kw)
             );
         }
         setFilteredSections(results);

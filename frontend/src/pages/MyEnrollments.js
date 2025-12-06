@@ -51,7 +51,7 @@ function MyEnrollments() {
                     <h1>My Enrollments</h1>
                     <div className="student-info">
                         <span className="student-name">{student?.name}</span>
-                        <span className="student-id">ID: {student?.student_id}</span>
+                        <span className="student-id">ID: {student?.studentid}</span>
                     </div>
                 </div>
             </header>
@@ -92,7 +92,7 @@ function MyEnrollments() {
                                     <div className="course-details">
                                         <div className="detail">
                                             <span className="icon">👤</span>
-                                            <span>{e.instructor_name}</span>
+                                            <span>{e.instructor_name}: {e.instructor_email}</span>
                                         </div>
                                         <div className="detail">
                                             <span className="icon">📅</span>

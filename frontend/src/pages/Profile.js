@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useStudent } from '../context/StudentContext';
 import './Profile.css';
+import { studentAPI } from '../api';
 
 function Profile() {
     const { student } = useStudent();
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState(student || {});
+    const [message, setMessage] = useState({ text: '', type: '' });
+    
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -15,9 +18,20 @@ function Profile() {
         }));
     };
 
-    const handleSaveChanges = () => {
+    const handleSaveChanges = async (name, studentid, email, major, year) => {
         // In a real application, this would save to the backend
         // For now, we'll just close the edit mode
+        if (window.confirm(`Are you sure you want to change profile for ${name}?`)) {
+                    try {
+                        await studentAPI.changeProfile(studentid, name, email, major, year);
+                    
+                        setMessage({ text: `Successfully modified profile for ${name}`, type: 'success' });
+                        setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+                    } catch (err) {
+                        setMessage({ text: 'Failed to drop course', type: 'error' });
+                    }
+                }
+
         setIsEditing(false);
     };
 

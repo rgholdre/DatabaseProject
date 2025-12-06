@@ -108,6 +108,27 @@ def create_student():
         return jsonify(student), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/students', methods=['POST'])
+def update_student(studentid):
+    """Update a student."""
+    try:
+        data = request.get_json()
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            '''UPDATE students SET studentid = %s, name = %s,
+                    email = %s, major = %s, classyear = %s) WHERE name = %s''',
+            (data['studentid'], data['name'], data['email'], 
+             data.get('major'), data.get('classyear'), data['name'])
+        )
+        student = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify(student), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # ==================== INSTRUCTOR ROUTES ====================
 @app.route('/api/instructors', methods=['GET'])
@@ -234,7 +255,7 @@ def get_student_enrollments(studentid):
         cur.execute('''
             SELECT e.studentid as student_id, e.courseid as course_id, e.sec_no,
                    c.title as course_title, c.code as course_code,
-                   se.term, se.year, se.modality, i.name as instructor_name,
+                   se.term, se.year, se.modality, i.name as instructor_name, i.email as instructor_email,
                    t.days, t.start_time, t.end_time, r.room_no, r.building
             FROM enrolled e
             JOIN section se ON e.courseid = se.courseid AND e.sec_no = se.sec_no
@@ -268,9 +289,9 @@ def create_enrollment():
         courseid = data.get('courseid') or data.get('course_id')
         sec_no = data.get('sec_no')
 
-        # Check if section has available seats
+        # Check if section has available seats - COALESCE(COUNT(e.studentid), 0) as seats
         cur.execute('''
-            SELECT s.capacity - COALESCE(COUNT(e.studentid), 0) as seats
+            SELECT s.capacity as seats
             FROM section s
             LEFT JOIN enrolled e ON s.courseid = e.courseid AND s.sec_no = e.sec_no
             WHERE s.courseid = %s AND s.sec_no = %s
@@ -286,8 +307,18 @@ def create_enrollment():
                VALUES (%s, %s, %s) RETURNING *''',
             (studentid, courseid, sec_no)
         )
+
         enrollment = cur.fetchone()
         conn.commit()
+
+        capacity = int(result['seats']) - 1
+
+        cur.execute(
+            '''UPDATE section SET capacity = %s WHERE sec_no = %s''',
+            (capacity , sec_no)
+        )
+        conn.commit()
+
         cur.close()
         conn.close()
         return jsonify(enrollment), 201
@@ -307,6 +338,23 @@ def delete_enrollment(studentid, courseid, sec_no):
             (studentid, courseid, sec_no)
         )
         deleted = cur.fetchone()
+
+        cur.execute('''
+            SELECT s.capacity as seats
+            FROM section s
+            LEFT JOIN enrolled e ON s.courseid = e.courseid AND s.sec_no = e.sec_no
+            WHERE s.courseid = %s AND s.sec_no = %s
+            GROUP BY s.capacity
+        ''', (courseid, sec_no))
+        result = cur.fetchone()
+        capacity = int(result['seats']) + 1
+
+        conn.commit()
+
+        cur.execute(
+            '''UPDATE section SET capacity = %s WHERE sec_no = %s''',
+            (capacity, sec_no)
+      )
         conn.commit()
         cur.close()
         conn.close()

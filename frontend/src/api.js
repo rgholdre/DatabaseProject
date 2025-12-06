@@ -35,6 +35,10 @@ export const courseAPI = {
 export const studentAPI = {
     getAll: () => fetchAPI('/students'),
     getById: (id) => fetchAPI(`/students/${id}`),
+    changeProfile: (data, id) => fetchAPI(`/students${id}`,{
+        method: 'POST',
+        body: JSON.stringify(data)
+    }),
     create: (data) => fetchAPI('/students', {
         method: 'POST',
         body: JSON.stringify(data),
